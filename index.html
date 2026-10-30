@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مغامرة الاحتمالات - الرياضيات الصف الرابع</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        .bouncy-btn {
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .bouncy-btn:hover {
+            transform: scale(1.05);
+        }
+        .bouncy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.15), 0 8px 10px -6px rgba(14, 165, 233, 0.1);
+        }
+
+        /* Wheel Spin CSS */
+        #wheel {
+            transition: transform 4s cubic-bezier(0.15, 0.99, 0.35, 1.02);
+        }
+
+        .pulse-animation {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-10 flex flex-col items-center">
+
+    <!-- Header / Top Bar -->
+    <header class="w-full max-w-4xl bg-white shadow-md rounded-b-2xl p-4 mb-6 border-b-4 border-sky-400">
+        <div class="flex justify-between items-center px-2 md:px-6">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="bg-amber-100 p-3 rounded-full text-amber-600 text-2xl border-2 border-amber-300">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-sky-800">مغامرة الأحتمالات 🎯</h1>
+                    <p class="text-xs md:text-sm text-slate-500 font-semibold">الرياضيات - الصف الرابع الابتدائي (المنهج السعودي)</p>
+                </div>
+            </div>
+
+            <!-- Score & Stars -->
+            <div class="flex items-center gap-4 bg-sky-50 px-4 py-2 rounded-xl border border-sky-200">
+                <div class="text-center">
+                    <span class="block text-xs text-slate-500 font-bold">النقاط</span>
+                    <span id="score" class="text-2xl font-black text-emerald-600">0</span>
+                </div>
+                <div class="text-2xl text-amber-400">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="w-full max-w-4xl px-4">
+
+        <!-- Navigation Tabs -->
+        <div class="grid grid-cols-3 gap-2 md:gap-4 mb-6">
+            <button onclick="switchTab('bag')" id="tab-bag" class="tab-btn active bg-sky-600 text-white font-extrabold py-3 rounded-2xl shadow-md border-b-4 border-sky-800 bouncy-btn flex flex-col md:flex-row items-center justify-center gap-2">
+                <i class="fa-solid fa-bag-shopping text-xl"></i>
+                <span>سلة الكرات</span>
+            </button>
+            <button onclick="switchTab('wheel')" id="tab-wheel" class="tab-btn bg-white text-slate-700 font-extrabold py-3 rounded-2xl shadow-md border-b-4 border-slate-300 bouncy-btn flex flex-col md:flex-row items-center justify-center gap-2">
+                <i class="fa-solid fa-dharmachakra text-xl"></i>
+                <span>عجلة الحظ</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn bg-white text-slate-700 font-extrabold py-3 rounded-2xl shadow-md border-b-4 border-slate-300 bouncy-btn flex flex-col md:flex-row items-center justify-center gap-2">
+                <i class="fa-solid fa-brain text-xl"></i>
+                <span>تحدي الذكاء</span>
+            </button>
+        </div>
+
+        <!-- Mode 1: Ball Bag Game -->
+        <section id="sec-bag" class="game-section bg-white rounded-3xl p-6 card-shadow border-2 border-sky-100">
+            <div class="text-center mb-4">
+                <span class="bg-sky-100 text-sky-800 font-bold px-3 py-1 rounded-full text-xs">المفهوم الأساسي</span>
+                <h2 class="text-2xl font-black text-slate-800 mt-2">ما إمكانية سحب هذا اللون؟ 🔴🔵🟢</h2>
+                <p class="text-slate-600 text-sm mt-1">انظر إلى الكرات داخل الكيس ثم اختر الوصف المناسب للاحتمال:</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <!-- Bag Container Display -->
+                <div class="bg-gradient-to-b from-amber-50 to-orange-50 border-4 border-dashed border-amber-300 rounded-3xl p-6 flex flex-col items-center justify-center relative min-h-[260px]">
+                    <div id="bag-balls" class="flex flex-wrap justify-center items-center gap-3 max-w-[240px]">
+                        <!-- Balls injected via JS -->
+                    </div>
+                    <div class="absolute -bottom-3 bg-amber-500 text-white px-4 py-1 rounded-full text-xs font-bold shadow">
+                        الكيس يحتوي <span id="total-balls-count">8</span> كرات
+                    </div>
+                </div>
+
+                <!-- Question & Choice Buttons -->
+                <div class="flex flex-col gap-3">
+                    <div class="bg-sky-50 border border-sky-200 p-4 rounded-2xl text-center">
+                        <p class="text-lg font-bold text-sky-900">
+                            احتمال سحب كرة باللون <span id="target-color-name" class="font-black underline underline-offset-4">...</span>:
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-2.5">
+                        <button onclick="checkBagAnswer('مستحيل')" class="bag-opt-btn bg-slate-50 hover:bg-red-50 hover:border-red-300 border-2 border-slate-200 text-slate-800 font-extrabold py-3 px-4 rounded-xl text-right transition flex items-center justify-between">
+                            <span>🚫 مستحيل</span>
+                            <span class="text-xs text-slate-400 font-normal">(0 كرات من هذا اللون)</span>
+                        </button>
+                        <button onclick="checkBagAnswer('أقل احتمالاً')" class="bag-opt-btn bg-slate-50 hover:bg-amber-50 hover:border-amber-300 border-2 border-slate-200 text-slate-800 font-extrabold py-3 px-4 rounded-xl text-right transition flex items-center justify-between">
+                            <span>🔹 أقل احتمالاً</span>
+                            <span class="text-xs text-slate-400 font-normal">(عدد قليل)</span>
+                        </button>
+                        <button onclick="checkBagAnswer('متساوي الإمكانية')" class="bag-opt-btn bg-slate-50 hover:bg-purple-50 hover:border-purple-300 border-2 border-slate-200 text-slate-800 font-extrabold py-3 px-4 rounded-xl text-right transition flex items-center justify-between">
+                            <span>⚖️ متساوي الإمكانية</span>
+                            <span class="text-xs text-slate-400 font-normal">(أعداد متساوية)</span>
+                        </button>
+                        <button onclick="checkBagAnswer('أكثر احتمالاً')" class="bag-opt-btn bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 border-2 border-slate-200 text-slate-800 font-extrabold py-3 px-4 rounded-xl text-right transition flex items-center justify-between">
+                            <span>⭐ أكثر احتمالاً</span>
+                            <span class="text-xs text-slate-400 font-normal">(العدد الأكثر)</span>
+                        </button>
+                        <button onclick="checkBagAnswer('أكيد')" class="bag-opt-btn bg-slate-50 hover:bg-blue-50 hover:border-blue-300 border-2 border-slate-200 text-slate-800 font-extrabold py-3 px-4 rounded-xl text-right transition flex items-center justify-between">
+                            <span>✅ أكيد</span>
+                            <span class="text-xs text-slate-400 font-normal">(جميع الكرات)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Message -->
+            <div id="bag-feedback" class="mt-4 p-3 rounded-xl text-center font-bold hidden"></div>
+        </section>
+
+        <!-- Mode 2: Spin Wheel Game -->
+        <section id="sec-wheel" class="game-section bg-white rounded-3xl p-6 card-shadow border-2 border-sky-100 hidden">
+            <div class="text-center mb-4">
+                <span class="bg-indigo-100 text-indigo-800 font-bold px-3 py-1 rounded-full text-xs">العجلة الدوارة</span>
+                <h2 class="text-2xl font-black text-slate-800 mt-2">تأرجح القرص والتوقع! 🎡</h2>
+                <p class="text-slate-600 text-sm mt-1">أدر العجلة ثم حدد احتمال استقرار المؤشر على القسيمة المعنية!</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <!-- Wheel UI -->
+                <div class="flex flex-col items-center justify-center relative">
+                    <!-- Pointer -->
+                    <div class="w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[25px] border-t-red-600 z-10 -mb-3 drop-shadow"></div>
+                    <!-- Wheel Canvas -->
+                    <div class="relative p-2 bg-slate-200 rounded-full shadow-inner">
+                        <canvas id="wheelCanvas" width="260" height="260" class="rounded-full shadow-md"></canvas>
+                    </div>
+                    <button id="spin-btn" onclick="spinWheel()" class="mt-4 bg-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-b-4 border-indigo-800 bouncy-btn">
+                        <i class="fa-solid fa-rotate-right ml-2"></i> أدر العجلة!
+                    </button>
+                </div>
+
+                <!-- Wheel Question & Controls -->
+                <div class="flex flex-col gap-3">
+                    <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-2xl text-center">
+                        <p class="text-base font-bold text-indigo-900">
+                            ما إمكانية وقف المؤشر عند القطاع <span id="wheel-target-text" class="font-black text-indigo-700 underline">؟</span>
+                        </p>
+                    </div>
+
+                    <div id="wheel-options" class="grid grid-cols-1 gap-2.5 opacity-50 pointer-events-none transition-all">
+                        <button onclick="checkWheelAnswer('أكيد')" class="bg-slate-50 hover:bg-indigo-50 border-2 border-slate-200 py-2.5 px-4 rounded-xl font-bold text-right text-slate-700">✅ أكيد</button>
+                        <button onclick="checkWheelAnswer('أكثر احتمالاً')" class="bg-slate-50 hover:bg-indigo-50 border-2 border-slate-200 py-2.5 px-4 rounded-xl font-bold text-right text-slate-700">⭐ أكثر احتمالاً</button>
+                        <button onclick="checkWheelAnswer('متساوي الإمكانية')" class="bg-slate-50 hover:bg-indigo-50 border-2 border-slate-200 py-2.5 px-4 rounded-xl font-bold text-right text-slate-700">⚖️ متساوي الإمكانية</button>
+                        <button onclick="checkWheelAnswer('أقل احتمالاً')" class="bg-slate-50 hover:bg-indigo-50 border-2 border-slate-200 py-2.5 px-4 rounded-xl font-bold text-right text-slate-700">🔹 أقل احتمالاً</button>
+                        <button onclick="checkWheelAnswer('مستحيل')" class="bg-slate-50 hover:bg-indigo-50 border-2 border-slate-200 py-2.5 px-4 rounded-xl font-bold text-right text-slate-700">🚫 مستحيل</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wheel Feedback -->
+            <div id="wheel-feedback" class="mt-4 p-3 rounded-xl text-center font-bold hidden"></div>
+        </section>
+
+        <!-- Mode 3: Quick Quiz -->
+        <section id="sec-quiz" class="game-section bg-white rounded-3xl p-6 card-shadow border-2 border-sky-100 hidden">
+            <div class="text-center mb-4">
+                <span class="bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full text-xs">اختبار المفاهيم اليومية</span>
+                <h2 class="text-2xl font-black text-slate-800 mt-2">تحدي العباقرة 🧠</h2>
+                <p class="text-slate-600 text-sm mt-1">اختر الوصف الصحيح للاحتمال في الحياة اليومية:</p>
+            </div>
+
+            <div id="quiz-container" class="max-w-xl mx-auto flex flex-col gap-4">
+                <!-- Question Card -->
+                <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200 p-6 rounded-2xl text-center">
+                    <p id="quiz-question-text" class="text-xl font-bold text-slate-800">
+                        <!-- JS Insert -->
+                    </p>
+                </div>
+
+                <!-- Choices -->
+                <div id="quiz-choices" class="grid grid-cols-1 gap-3">
+                    <!-- JS Insert -->
+                </div>
+            </div>
+
+            <!-- Quiz Feedback -->
+            <div id="quiz-feedback" class="mt-4 p-3 rounded-xl text-center font-bold hidden max-w-xl mx-auto"></div>
+        </section>
+
+        <!-- Concept Glossary Reference -->
+        <footer class="mt-8 bg-white/80 backdrop-blur rounded-2xl p-4 border border-sky-100">
+            <h3 class="text-sm font-bold text-slate-500 mb-2 text-center">📌 تذكر المفاهيم الأساسية لدرس الاحتمالات:</h3>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs text-center font-bold">
+                <div class="bg-blue-100 text-blue-800 p-2 rounded-lg">✅ أكيد: سينجح 100%</div>
+                <div class="bg-emerald-100 text-emerald-800 p-2 rounded-lg">⭐ أكثر احتمالاً: فرصة كبيرة جداً</div>
+                <div class="bg-purple-100 text-purple-800 p-2 rounded-lg">⚖️ متساوي الإمكانية: 50% / 50%</div>
+                <div class="bg-amber-100 text-amber-800 p-2 rounded-lg">🔹 أقل احتمالاً: فرصة ضئيلة</div>
+                <div class="bg-red-100 text-red-800 p-2 rounded-lg">🚫 مستحيل: لن يحدث أبداً</div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Win Modal -->
+    <div id="win-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border-4 border-amber-400 relative animate-bounce-once">
+            <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 border-2 border-amber-300">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-800 mb-2">بطل الاحتمالات! 🎉</h3>
+            <p class="text-slate-600 font-semibold mb-6">أحسنت! لقد أجبت إجابة صحيحة وحصلت على نجوم إضافية!</p>
+            <button onclick="closeModal()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 rounded-2xl shadow-lg border-b-4 border-emerald-700 bouncy-btn">
+                المتابعة للأسئلة التالية 🚀
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /* --- Sound Effects with Tone.js --- */
+        let synth, polySynth;
+        
+        function initAudio() {
+            if (!synth) {
+                synth = new Tone.Synth().toDestination();
+                polySynth = new Tone.PolySynth().toDestination();
+            }
+        }
+
+        function playCorrectSound() {
+            try {
+                initAudio();
+                const now = Tone.now();
+                polySynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "8n", now);
+            } catch(e) {}
+        }
+
+        function playWrongSound() {
+            try {
+                initAudio();
+                const now = Tone.now();
+                synth.triggerAttackRelease("C3", "8n", now);
+            } catch(e) {}
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 70,
+                spread: 60,
+                origin: { y: 0.6 }
+            });
+        }
+
+        /* --- Global Game State --- */
+        let score = 0;
+
+        function addScore(pts) {
+            score += pts;
+            document.getElementById('score').innerText = score;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.game-section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-sky-600', 'text-white', 'border-sky-800');
+                btn.classList.add('bg-white', 'text-slate-700', 'border-slate-300');
+            });
+
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            activeBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-300');
+            activeBtn.classList.add('bg-sky-600', 'text-white', 'border-sky-800');
+
+            document.getElementById(`sec-${tabName}`).classList.remove('hidden');
+
+            if (tabName === 'wheel') {
+                drawWheel();
+            }
+        }
+
+        /* --- STREAMING_CHUNK: Bag Game Logic --- */
+        const colorsConfig = [
+            { name: 'الأحمر', bg: 'bg-red-500', hex: '#ef4444' },
+            { name: 'الأزرق', bg: 'bg-blue-500', hex: '#3b82f6' },
+            { name: 'الأخضر', bg: 'bg-emerald-500', hex: '#10b981' },
+            { name: 'الأصفر', bg: 'bg-amber-400', hex: '#f59e0b' }
+        ];
+
+        let currentBagState = {
+            balls: [],
+            targetColor: null,
+            correctAnswer: ''
+        };
+
+        function generateBagQuestion() {
+            const feedbackEl = document.getElementById('bag-feedback');
+            feedbackEl.classList.add('hidden');
+
+            // Generate 8 balls randomly using 2 or 3 colors
+            const chosenColors = colorsConfig.slice(0, 3);
+            const counts = [0, 0, 0];
+            const type = Math.floor(Math.random() * 5); 
+
+            let ballsArr = [];
+
+            if (type === 0) { // Certain (All Red)
+                for(let i=0; i<8; i++) ballsArr.push(chosenColors[0]);
+                currentBagState.targetColor = chosenColors[0];
+                currentBagState.correctAnswer = 'أكيد';
+            } else if (type === 1) { // Impossible (Zero Green)
+                for(let i=0; i<5; i++) ballsArr.push(chosenColors[0]);
+                for(let i=0; i<3; i++) ballsArr.push(chosenColors[1]);
+                currentBagState.targetColor = chosenColors[2]; // Green isn't present
+                currentBagState.correctAnswer = 'مستحيل';
+            } else if (type === 2) { // Equal Likelihood (4 Red, 4 Blue)
+                for(let i=0; i<4; i++) ballsArr.push(chosenColors[0]);
+                for(let i=0; i<4; i++) ballsArr.push(chosenColors[1]);
+                currentBagState.targetColor = chosenColors[0];
+                currentBagState.correctAnswer = 'متساوي الإمكانية';
+            } else if (type === 3) { // More Likely (6 Red, 2 Blue)
+                for(let i=0; i<6; i++) ballsArr.push(chosenColors[0]);
+                for(let i=0; i<2; i++) ballsArr.push(chosenColors[1]);
+                currentBagState.targetColor = chosenColors[0];
+                currentBagState.correctAnswer = 'أكثر احتمالاً';
+            } else { // Less Likely (1 Red, 7 Blue)
+                for(let i=0; i<1; i++) ballsArr.push(chosenColors[0]);
+                for(let i=0; i<7; i++) ballsArr.push(chosenColors[1]);
+                currentBagState.targetColor = chosenColors[0];
+                currentBagState.correctAnswer = 'أقل احتمالاً';
+            }
+
+            // Shuffle balls
+            ballsArr.sort(() => Math.random() - 0.5);
+            currentBagState.balls = ballsArr;
+
+            // Render UI
+            const bagContainer = document.getElementById('bag-balls');
+            bagContainer.innerHTML = '';
+            ballsArr.forEach(b => {
+                const ballEl = document.createElement('div');
+                ballEl.className = `w-10 h-10 ${b.bg} rounded-full shadow-md border-2 border-white transform hover:scale-110 transition`;
+                bagContainer.appendChild(ballEl);
+            });
+
+            document.getElementById('total-balls-count').innerText = ballsArr.length;
+            document.getElementById('target-color-name').innerText = currentBagState.targetColor.name;
+        }
+
+        function checkBagAnswer(answer) {
+            const feedbackEl = document.getElementById('bag-feedback');
+            feedbackEl.classList.remove('hidden');
+
+            if (answer === currentBagState.correctAnswer) {
+                playCorrectSound();
+                triggerConfetti();
+                addScore(10);
+                feedbackEl.className = 'mt-4 p-3 rounded-xl text-center font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+                feedbackEl.innerHTML = `✨ إجابة صحيحة رائع! الاحتمال هو (${answer}). (+10 نقاط)`;
+                setTimeout(generateBagQuestion, 2000);
+            } else {
+                playWrongSound();
+                feedbackEl.className = 'mt-4 p-3 rounded-xl text-center font-bold bg-red-100 text-red-800 border border-red-300';
+                feedbackEl.innerHTML = `❌ إجابة غير دقيقة! حاول مرة أخرى التركيز في عدد الكرات.`;
+            }
+        }
+
+        /* --- STREAMING_CHUNK: Spin Wheel Logic --- */
+        let wheelSlices = [
+            { label: 'أحمر', color: '#ef4444' },
+            { label: 'أحمر', color: '#ef4444' },
+            { label: 'أزرق', color: '#3b82f6' },
+            { label: 'أخضر', color: '#10b981' },
+            { label: 'أحمر', color: '#ef4444' },
+            { label: 'أصفر', color: '#f59e0b' }
+        ];
+
+        let wheelTarget = null;
+        let wheelCorrectProb = '';
+
+        function drawWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const numSlices = wheelSlices.length;
+            const sliceAngle = (2 * Math.PI) / numSlices;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            wheelSlices.forEach((slice, i) => {
+                const angle = i * sliceAngle;
+                ctx.beginPath();
+                ctx.fillStyle = slice.color;
+                ctx.moveTo(130, 130);
+                ctx.arc(130, 130, 120, angle, angle + sliceAngle);
+                ctx.lineTo(130, 130);
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Labels
+                ctx.save();
+                ctx.translate(130, 130);
+                ctx.rotate(angle + sliceAngle / 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px Cairo';
+                ctx.fillText(slice.label, 60, 5);
+                ctx.restore();
+            });
+        }
+
+        function spinWheel() {
+            initAudio();
+            const canvas = document.getElementById('wheelCanvas');
+            const btn = document.getElementById('spin-btn');
+            btn.disabled = true;
+
+            const randomRotation = 1440 + Math.floor(Math.random() * 360); // 4 full spins + random
+            canvas.style.transform = `rotate(${randomRotation}deg)`;
+
+            setTimeout(() => {
+                btn.disabled = false;
+                setupWheelQuestion();
+            }, 4000);
+        }
+
+        function setupWheelQuestion() {
+            // Count slice types
+            const counts = {};
+            wheelSlices.forEach(s => counts[s.label] = (counts[s.label] || 0) + 1);
+
+            // Random target category
+            const options = ['أحمر', 'أزرق', 'أسود'];
+            const chosen = options[Math.floor(Math.random() * options.length)];
+            
+            document.getElementById('wheel-target-text').innerText = chosen;
+
+            const count = counts[chosen] || 0;
+            if (count === 6) wheelCorrectProb = 'أكيد';
+            else if (count === 0) wheelCorrectProb = 'مستحيل';
+            else if (count === 3) wheelCorrectProb = 'متساوي الإمكانية';
+            else if (count > 3) wheelCorrectProb = 'أكثر احتمالاً';
+            else wheelCorrectProb = 'أقل احتمالاً';
+
+            const opts = document.getElementById('wheel-options');
+            opts.classList.remove('opacity-50', 'pointer-events-none');
+        }
+
+        function checkWheelAnswer(ans) {
+            const feedback = document.getElementById('wheel-feedback');
+            feedback.classList.remove('hidden');
+
+            if (ans === wheelCorrectProb) {
+                playCorrectSound();
+                triggerConfetti();
+                addScore(10);
+                feedback.className = 'mt-4 p-3 rounded-xl text-center font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+                feedback.innerHTML = `🎉 ممتاز! إجابتك صحيحة. (+10 نقاط)`;
+            } else {
+                playWrongSound();
+                feedback.className = 'mt-4 p-3 rounded-xl text-center font-bold bg-red-100 text-red-800 border border-red-300';
+                feedback.innerHTML = `❌ حاول مرة أخرى! تأكد من عدد القطاعات الملونة بهذا اللون.`;
+            }
+        }
+
+        /* --- STREAMING_CHUNK: Quiz Bank & Logic --- */
+        const quizQuestions = [
+            {
+                q: "شروق الشمس من جهة الشرق غداً هو حدث:",
+                choices: ["أكيد", "أكثر احتمالاً", "مستحيل", "أقل احتمالاً"],
+                correct: "أكيد"
+            },
+            {
+                q: "تطير السيّارة في الهواء دون محرّك خيالي:",
+                choices: ["أقل احتمالاً", "متساوي الإمكانية", "مستحيل", "أكيد"],
+                correct: "مستحيل"
+            },
+            {
+                q: "ظهور العدد 7 عند رمي مكعب أرقام عادي (من 1 إلى 6):",
+                choices: ["أكيد", "مستحيل", "أكثر احتمالاً", "متساوي الإمكانية"],
+                correct: "مستحيل"
+            },
+            {
+                q: "الحصول على عدد زوجي عند رمي مكعب أرقام (1-6):",
+                choices: ["مستحيل", "متساوي الإمكانية", "أكيد", "أقل احتمالاً"],
+                correct: "متساوي الإمكانية"
+            }
+        ];
+
+        let currentQuizIdx = 0;
+
+        function loadQuizQuestion() {
+            const q = quizQuestions[currentQuizIdx];
+            document.getElementById('quiz-question-text').innerText = q.q;
+
+            const choicesContainer = document.getElementById('quiz-choices');
+            choicesContainer.innerHTML = '';
+
+            document.getElementById('quiz-feedback').classList.add('hidden');
+
+            q.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'bg-slate-50 hover:bg-emerald-50 border-2 border-slate-200 hover:border-emerald-300 text-slate-800 font-bold p-3 rounded-xl text-right transition flex items-center justify-between';
+                btn.innerHTML = `<span>${choice}</span> <i class="fa-solid fa-chevron-left text-xs text-slate-400"></i>`;
+                btn.onclick = () => checkQuizAnswer(choice);
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function checkQuizAnswer(selected) {
+            const q = quizQuestions[currentQuizIdx];
+            const feedback = document.getElementById('quiz-feedback');
+            feedback.classList.remove('hidden');
+
+            if (selected === q.correct) {
+                playCorrectSound();
+                triggerConfetti();
+                addScore(15);
+                feedback.className = 'mt-4 p-3 rounded-xl text-center font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+                feedback.innerHTML = `🌟 إجابة بطل! أحسنت. (+15 نقطة)`;
+
+                setTimeout(() => {
+                    currentQuizIdx = (currentQuizIdx + 1) % quizQuestions.length;
+                    loadQuizQuestion();
+                }, 2000);
+            } else {
+                playWrongSound();
+                feedback.className = 'mt-4 p-3 rounded-xl text-center font-bold bg-red-100 text-red-800 border border-red-300';
+                feedback.innerHTML = `💡 فكّر جيداُ في الحدث وركز في معناه!`;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('win-modal').classList.add('hidden');
+        }
+
+        /* --- STREAMING_CHUNK: Initialization on Window Load... --- */
+        window.onload = function() {
+            generateBagQuestion();
+            loadQuizQuestion();
+        };
+    </script>
+</body>
+</html>
